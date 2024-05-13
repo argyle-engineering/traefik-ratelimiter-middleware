@@ -1,6 +1,6 @@
 This repository includes an example plugin, `demo`, for you to use as a reference for developing your own plugins.
 
-[![Build Status](https://github.com/traefik/plugindemo/workflows/Main/badge.svg?branch=master)](https://github.com/traefik/plugindemo/actions)
+[![Build Status](https://github.com/argyle-engineering/traefik-ratelimiter-middleware/workflows/Main/badge.svg?branch=main)](https://github.com/argyle-engineering/traefik-ratelimiter-middleware/actions)
 
 The existing plugins can be browsed into the [Plugin Catalog](https://plugins.traefik.io).
 
@@ -63,7 +63,7 @@ http:
       loadBalancer:
         servers:
           - url: http://127.0.0.1:5000
-  
+
   middlewares:
     my-plugin:
       plugin:
@@ -124,7 +124,7 @@ http:
       loadBalancer:
         servers:
           - url: http://127.0.0.1:5000
-  
+
   middlewares:
     my-plugin:
       plugin:
