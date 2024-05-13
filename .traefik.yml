@@ -2,7 +2,7 @@ displayName: Demo Plugin
 type: middleware
 iconPath: .assets/icon.png
 
-import: github.com/traefik/plugindemo
+import: github.com/argyle-engineering/traefik-ratelimiter-middleware
 
 summary: '[Demo] Add Request Header'
 

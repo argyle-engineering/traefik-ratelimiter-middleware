@@ -1,3 +1,3 @@
-module github.com/traefik/plugindemo
+module github.com/argyle-engineering/traefik-ratelimiter-middleware
 
-go 1.19
+go 1.22
