@@ -11,13 +11,15 @@ import (
 
 // Config the plugin configuration.
 type Config struct {
-	URL string `json:"url"`
+	URL    string `json:"url"`
+	DryRun bool   `json:"dryRun"`
 }
 
 // Ratelimiter plugin that calls a specified ratelimiter service URL.
 type Ratelimiter struct {
-	next http.Handler
-	url  string
+	next   http.Handler
+	url    string
+	dryRun bool
 }
 
 // CreateConfig creates the default plugin configuration.
@@ -32,8 +34,9 @@ func New(_ context.Context, next http.Handler, config *Config, _ string) (http.H
 	}
 
 	return &Ratelimiter{
-		next: next,
-		url:  config.URL,
+		next:   next,
+		url:    config.URL,
+		dryRun: config.DryRun,
 	}, nil
 }
 
@@ -55,8 +58,11 @@ func (r *Ratelimiter) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	if resp.StatusCode == http.StatusTooManyRequests {
-		http.Error(rw, "Too many requests", http.StatusTooManyRequests)
-		return
+		if !r.dryRun {
+			http.Error(rw, "Too many requests", http.StatusTooManyRequests)
+			return
+		}
+		_, _ = os.Stderr.WriteString("dry run: too many requests")
 	}
 
 	r.next.ServeHTTP(rw, req)
