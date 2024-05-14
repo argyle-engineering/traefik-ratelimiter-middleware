@@ -1,12 +1,9 @@
-displayName: Demo Plugin
+displayName: Ratelimiter Middleware Plugin
 type: middleware
-iconPath: .assets/icon.png
 
 import: github.com/argyle-engineering/traefik-ratelimiter-middleware
 
-summary: '[Demo] Add Request Header'
+summary: "This middleware calls a service that is expected to return 429 response for requests that should be rate limited."
 
 testData:
-  Headers:
-    X-Demo: test
-    X-URL: '{{URL}}'
+  URL: 'https://example.com'

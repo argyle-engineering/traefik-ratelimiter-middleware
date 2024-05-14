@@ -53,7 +53,7 @@ linters:
     - wsl
     - exhaustive
     - exhaustruct
-    - goerr113
+    - err113
     - wrapcheck
     - ifshort
     - noctx
