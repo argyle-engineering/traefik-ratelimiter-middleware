@@ -1,5 +1,7 @@
-// Package ratelimiter defines a middleware that integrates with ratelimiter service.
-package ratelimiter
+// Package traefik_ratelimiter_middleware defines a middleware that integrates with ratelimiter service.
+//
+//nolint:stylecheck,revive
+package traefik_ratelimiter_middleware
 
 import (
 	"context"

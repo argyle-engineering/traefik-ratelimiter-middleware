@@ -1,4 +1,5 @@
-package ratelimiter
+//nolint:stylecheck,revive
+package traefik_ratelimiter_middleware
 
 import (
 	"context"
