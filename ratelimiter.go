@@ -67,5 +67,6 @@ func (r *Ratelimiter) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		_, _ = os.Stderr.WriteString("dry run: too many requests")
 	}
 
+	_, _ = fmt.Fprintf(os.Stdout, "ratelimiter response: %v\n", resp.Status)
 	r.next.ServeHTTP(rw, req)
 }
