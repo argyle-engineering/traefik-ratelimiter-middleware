@@ -46,7 +46,7 @@ func (r *Ratelimiter) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	client := http.Client{}
 	newReq, err := http.NewRequest(http.MethodGet, r.url, nil)
 	if err != nil {
-		_, _ = os.Stderr.WriteString(fmt.Sprintf("error creating request: %v", err))
+		_, _ = fmt.Fprintf(os.Stderr, "ratelimiter middleware: error creating request: %v\n", err)
 		r.next.ServeHTTP(rw, req)
 		return
 	}
@@ -54,7 +54,7 @@ func (r *Ratelimiter) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	resp, err := client.Do(newReq)
 	if err != nil {
-		_, _ = os.Stderr.WriteString(fmt.Sprintf("error making request: %v", err))
+		_, _ = fmt.Fprintf(os.Stderr, "ratelimiter middleware: error making request: %v\n", err)
 		r.next.ServeHTTP(rw, req)
 		return
 	}
@@ -64,9 +64,8 @@ func (r *Ratelimiter) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			http.Error(rw, "Too many requests", http.StatusTooManyRequests)
 			return
 		}
-		_, _ = os.Stderr.WriteString("dry run: too many requests")
+		_, _ = fmt.Fprintf(os.Stderr, "ratelimiter middleware: dry run: too many requests\n")
 	}
 
-	_, _ = fmt.Fprintf(os.Stdout, "ratelimiter response: %v\n", resp.Status)
 	r.next.ServeHTTP(rw, req)
 }
