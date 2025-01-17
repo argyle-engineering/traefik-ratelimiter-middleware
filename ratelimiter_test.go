@@ -101,6 +101,7 @@ func TestHostIsSent(t *testing.T) {
 }
 
 func RunTestServeHTTP(t *testing.T, tt TestServeHTTP) {
+	t.Helper()
 	ratelimiterServer := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		user, pass, ok := req.BasicAuth()
 		if !ok || user != "user" || pass != "pass" {
