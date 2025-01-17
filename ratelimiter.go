@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path"
 )
 
 // Config the plugin configuration.
@@ -51,6 +52,10 @@ func (r *Ratelimiter) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 	newReq.Header = req.Header
+	newReq.URL.Path = path.Join(newReq.URL.Path, req.URL.Path)
+	if req.Host != "" {
+		newReq.Host = req.Host
+	}
 
 	resp, err := client.Do(newReq)
 	if err != nil {
@@ -65,6 +70,10 @@ func (r *Ratelimiter) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			return
 		}
 		_, _ = fmt.Fprintf(os.Stderr, "ratelimiter middleware: dry run: too many requests\n")
+	}
+
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusAccepted && resp.StatusCode != http.StatusNoContent {
+		_, _ = fmt.Fprintf(os.Stderr, "ratelimiter middleware: unexpected status code: %d\n", resp.StatusCode)
 	}
 
 	r.next.ServeHTTP(rw, req)
