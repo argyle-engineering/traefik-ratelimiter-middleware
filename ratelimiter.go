@@ -72,7 +72,7 @@ func (r *Ratelimiter) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		_, _ = fmt.Fprintf(os.Stderr, "ratelimiter middleware: dry run: too many requests\n")
 	}
 
-	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusAccepted && resp.StatusCode != http.StatusNoContent {
+	if resp.StatusCode != http.StatusTooManyRequests && resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusAccepted && resp.StatusCode != http.StatusNoContent {
 		_, _ = fmt.Fprintf(os.Stderr, "ratelimiter middleware: unexpected status code: %d\n", resp.StatusCode)
 	}
 
