@@ -3,6 +3,9 @@ package traefik_ratelimiter_middleware
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -33,6 +36,16 @@ func TestFailedCallingRateLimiter(t *testing.T) {
 	RunTestServeHTTP(t, TestServeHTTP{
 		rateLimiterURL: "127.0.0.1",
 		haveResponse:   0, // cause failure
+		expectCall:     true,
+		expectResponse: http.StatusOK,
+		expectBody:     "OK",
+	})
+}
+
+func TestConnectionRefused(t *testing.T) {
+	RunTestServeHTTP(t, TestServeHTTP{
+		rateLimiterURL: "127.0.0.1",
+		haveResponse:   -1, // not even start the server
 		expectCall:     true,
 		expectResponse: http.StatusOK,
 		expectBody:     "OK",
@@ -102,23 +115,13 @@ func TestHostIsSent(t *testing.T) {
 
 func RunTestServeHTTP(t *testing.T, tt TestServeHTTP) {
 	t.Helper()
-	ratelimiterServer := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		user, pass, ok := req.BasicAuth()
-		if !ok || user != "user" || pass != "pass" {
-			t.Error("unexpected user/password")
+	url, ratelimiterServer := newTestServer(t, tt)
+	defer func() {
+		if ratelimiterServer != nil {
+			ratelimiterServer.Close()
 		}
-		if tt.expectPath != "" && tt.expectPath != req.URL.Path {
-			t.Errorf("got path `%s` but expected `%s`", req.URL.Path, tt.expectPath)
-		}
-		if tt.expectHost != "" && tt.expectHost != req.Host {
-			t.Errorf("got host `%s` but expected `%s`", req.Host, tt.expectHost)
-		}
-		rw.WriteHeader(tt.haveResponse)
-		_, _ = rw.Write([]byte(http.StatusText(tt.haveResponse)))
-	}))
-	defer ratelimiterServer.Close()
+	}()
 
-	url := ratelimiterServer.URL
 	if url == "" {
 		url = tt.rateLimiterURL
 	}
@@ -159,4 +162,54 @@ func RunTestServeHTTP(t *testing.T, tt TestServeHTTP) {
 	if tt.expectBody != rw.Body.String() {
 		t.Errorf("tt.expectBody(%s)!=rw.Body(%s)", tt.expectBody, rw.Body.String())
 	}
+}
+
+func newTestServer(t *testing.T, tt TestServeHTTP) (string, *httptest.Server) {
+	t.Helper()
+
+	if tt.haveResponse < 0 {
+		port, err := getFreePort()
+		if err != nil {
+			t.Error(err)
+		}
+		return fmt.Sprintf("http://localhost:%d", port), nil
+	}
+
+	ratelimiterServer := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		user, pass, ok := req.BasicAuth()
+		if !ok || user != "user" || pass != "pass" {
+			t.Error("unexpected user/password")
+		}
+		if tt.expectPath != "" && tt.expectPath != req.URL.Path {
+			t.Errorf("got path `%s` but expected `%s`", req.URL.Path, tt.expectPath)
+		}
+		if tt.expectHost != "" && tt.expectHost != req.Host {
+			t.Errorf("got host `%s` but expected `%s`", req.Host, tt.expectHost)
+		}
+		rw.WriteHeader(tt.haveResponse)
+		_, _ = rw.Write([]byte(http.StatusText(tt.haveResponse)))
+	}))
+	return ratelimiterServer.URL, ratelimiterServer
+}
+
+func getFreePort() (int, error) {
+	addr, err := net.ResolveTCPAddr("tcp", "localhost:0")
+	if err != nil {
+		return 0, err
+	}
+
+	l, err := net.ListenTCP("tcp", addr)
+	if err != nil {
+		return 0, err
+	}
+	defer func() {
+		_ = l.Close()
+	}()
+
+	tcpAddr, ok := l.Addr().(*net.TCPAddr)
+	if !ok {
+		return 0, errors.New("can't cast to net.TCPAddr")
+	}
+
+	return tcpAddr.Port, nil
 }
